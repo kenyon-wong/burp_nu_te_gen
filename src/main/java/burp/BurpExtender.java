@@ -46,58 +46,43 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 JButton Nuc_bt_1 = new JButton("生成");
                 JButton Nuc_bt_2 = new JButton("清空");
 
-                JLabel Nuc_lb_id = new JLabel("模版id：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_id = new JTextField(1);
-                Nuc_tf_id.setText("test");
+                JLabel Nuc_lb_id = createLabel("模版id：");
+                JTextField Nuc_tf_id = createTextField("test");
 
-                JLabel Nuc_lb_name = new JLabel("模版名称：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_name = new JTextField(1);
-                Nuc_tf_name.setText("test");
+                JLabel Nuc_lb_name = createLabel("模版名称：");
+                JTextField Nuc_tf_name = createTextField("test");
 
-                JLabel Nuc_lb_author = new JLabel("作者名称：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_author = new JTextField(1);
-                Nuc_tf_author.setText("ffffffff0x");
+                JLabel Nuc_lb_author = createLabel("作者名称：");
+                JTextField Nuc_tf_author = createTextField("ffffffff0x");
 
-                JLabel Nuc_lb_severity = new JLabel("严重程度：", SwingConstants.RIGHT);
-                JComboBox<String> Nuc_Tab_severity = new JComboBox<>(GetSeverityModes());
-                Nuc_Tab_severity.setMaximumSize(Nuc_Tab_severity.getPreferredSize());
-                Nuc_Tab_severity.setSelectedIndex(0);
+                JLabel Nuc_lb_severity = createLabel("严重程度：");
+                JComboBox<String> Nuc_Tab_severity = createComboBox(GetSeverityModes(), 0);
 
-                JLabel Nuc_lb_description = new JLabel("描述：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_description = new JTextField(1);
-                Nuc_tf_description.setText("由插件自动生成");
+                JLabel Nuc_lb_description = createLabel("描述：");
+                JTextField Nuc_tf_description = createTextField("由插件自动生成");
 
-                JLabel Nuc_lb_tags = new JLabel("Tags：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_tags = new JTextField(1);
-                Nuc_tf_tags.setText("auto");
+                JLabel Nuc_lb_tags = createLabel("Tags：");
+                JTextField Nuc_tf_tags = createTextField("auto");
 
-                JLabel Nuc_lb_req = new JLabel("请求方式：", SwingConstants.RIGHT);
-                JComboBox<String> Nuc_Tab_req = new JComboBox<>(GetReqModes());
-                Nuc_Tab_req.setMaximumSize(Nuc_Tab_req.getPreferredSize());
-                Nuc_Tab_req.setSelectedIndex(0);
+                JLabel Nuc_lb_req = createLabel("请求方式：");
+                JComboBox<String> Nuc_Tab_req = createComboBox(GetReqModes(), 0);
 
-                JLabel Nuc_lb_path = new JLabel("请求路径：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_path = new JTextField(1);
-                Nuc_tf_path.setText("");
+                JLabel Nuc_lb_path = createLabel("请求路径：");
+                JTextField Nuc_tf_path = createTextField("");
 
-                JLabel Nuc_lb_headers = new JLabel("Content-Type：", SwingConstants.RIGHT);
-                JComboBox<String> Nuc_Tab_headers = new JComboBox<>(GetHeadersModes());
-                Nuc_Tab_headers.setMaximumSize(Nuc_Tab_headers.getPreferredSize());
-                Nuc_Tab_headers.setSelectedIndex(0);
+                JLabel Nuc_lb_headers = createLabel("Content-Type：");
+                JComboBox<String> Nuc_Tab_headers = createComboBox(GetHeadersModes(), 0);
 
-                JLabel Nuc_lb_body = new JLabel("body：", SwingConstants.RIGHT);
-                JComboBox<String> Nuc_Tab_body = new JComboBox<>(GetBodyModes());
-                Nuc_Tab_body.setMaximumSize(Nuc_Tab_body.getPreferredSize());
-                Nuc_Tab_body.setSelectedIndex(0);
+                JLabel Nuc_lb_body = createLabel("body：");
+                JComboBox<String> Nuc_Tab_body = createComboBox(GetBodyModes(), 0);
 
-                JLabel Nuc_lb_redirects = new JLabel("是否跟随跳转：", SwingConstants.RIGHT);
-                JComboBox<String> Nuc_Tab_redirects = new JComboBox<>(GetRedirectsModes());
-                Nuc_Tab_redirects.setMaximumSize(Nuc_Tab_redirects.getPreferredSize());
-                Nuc_Tab_redirects.setSelectedIndex(1);
+                JLabel Nuc_lb_redirects = createLabel("是否跟随跳转：");
+                JComboBox<String> Nuc_Tab_redirects = createComboBox(GetRedirectsModes(), 1);
 
-                JLabel Nuc_lb_redirects_num = new JLabel("跳转次数：", SwingConstants.RIGHT);
-                JTextField Nuc_tf_redirects_num = new JTextField(1);
-                Nuc_tf_redirects_num.setText("0");
+                JLabel Nuc_lb_redirects_num = createLabel("跳转次数：");
+                JTextField Nuc_tf_redirects_num = createTextField("0");
+
+                // 分割
 
                 JLabel Nuc_lb_Match_word = new JLabel("matchers模版 ", SwingConstants.RIGHT);
                 JCheckBox Nuc_CB_Match_word = new JCheckBox(" (word)");
@@ -214,32 +199,19 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 });
 
                 Component[] components = {
-                        Nuc_bt_1,
-                        Nuc_bt_2,
-                        Nuc_lb_id,
-                        Nuc_tf_id,
-                        Nuc_lb_name,
-                        Nuc_tf_name,
-                        Nuc_lb_author,
-                        Nuc_tf_author,
-                        Nuc_lb_severity,
-                        Nuc_Tab_severity,
-                        Nuc_lb_description,
-                        Nuc_tf_description,
-                        Nuc_lb_tags,
-                        Nuc_tf_tags,
-                        Nuc_lb_req,
-                        Nuc_Tab_req,
-                        Nuc_lb_path,
-                        Nuc_tf_path,
-                        Nuc_lb_headers,
-                        Nuc_Tab_headers,
-                        Nuc_lb_body,
-                        Nuc_Tab_body,
-                        Nuc_lb_redirects,
-                        Nuc_Tab_redirects,
-                        Nuc_lb_redirects_num,
-                        Nuc_tf_redirects_num
+                        Nuc_bt_1, Nuc_bt_2,
+                        Nuc_lb_id, Nuc_tf_id,
+                        Nuc_lb_name, Nuc_tf_name,
+                        Nuc_lb_author, Nuc_tf_author,
+                        Nuc_lb_severity, Nuc_Tab_severity,
+                        Nuc_lb_description, Nuc_tf_description,
+                        Nuc_lb_tags, Nuc_tf_tags,
+                        Nuc_lb_req, Nuc_Tab_req,
+                        Nuc_lb_path, Nuc_tf_path,
+                        Nuc_lb_headers, Nuc_Tab_headers,
+                        Nuc_lb_body,  Nuc_Tab_body,
+                        Nuc_lb_redirects, Nuc_Tab_redirects,
+                        Nuc_lb_redirects_num, Nuc_tf_redirects_num
                 };
 
                 for (Component component : components) {
@@ -250,32 +222,21 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 Nuc_jp4.setLayout(new GridLayout(14, 2));
 
                 Component[] matchComponents = {
-                        Nuc_lb_Match_word,
-                        Nuc_CB_Match_word,
-                        Nuc_lb_Match_header,
-                        Nuc_CB_Match_header,
-                        Nuc_lb_Match_status,
-                        Nuc_CB_Match_status,
-                        Nuc_lb_Match_extractors,
-                        Nuc_CB_Match_extractors,
-                        Nuc_lb_Match_negative,
-                        Nuc_CB_Match_negative,
-                        Nuc_lb_Match_time,
-                        Nuc_CB_Match_time,
-                        Nuc_lb_Match_size,
-                        Nuc_CB_Match_size,
-                        Nuc_lb_Match_interactsh_protocol,
-                        Nuc_CB_Match_interactsh_protocol,
-                        Nuc_lb_Match_interactsh_request,
-                        Nuc_CB_Match_interactsh_request,
-                        Nuc_lb_Match_regex, Nuc_CB_Match_regex,
-                        Nuc_lb_Match_binary, Nuc_CB_Match_binary
+                        Nuc_lb_Match_word, Nuc_CB_Match_word,
+                        Nuc_lb_Match_header, Nuc_CB_Match_header,
+                        Nuc_lb_Match_status, Nuc_CB_Match_status,
+                        Nuc_lb_Match_extractors, Nuc_CB_Match_extractors,
+                        Nuc_lb_Match_negative, Nuc_CB_Match_negative,
+                        Nuc_lb_Match_time, Nuc_CB_Match_time,
+                        Nuc_lb_Match_size, Nuc_CB_Match_size,
+                        Nuc_lb_Match_interactsh_protocol, Nuc_CB_Match_interactsh_protocol,
+                        Nuc_lb_Match_interactsh_request, Nuc_CB_Match_interactsh_request,
+                        Nuc_lb_Match_regex, Nuc_CB_Match_regex, Nuc_lb_Match_binary, Nuc_CB_Match_binary
                 };
 
                 for (Component component : matchComponents) {
                     Nuc_jp4.add(component);
                 }
-
 
                 JPanel Nuc_jp2 = new JPanel();
                 Nuc_jp2.setLayout(new GridLayout(1, 1));
@@ -346,6 +307,23 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
                 callbacks.registerHttpListener(BurpExtender.this);
 
+            }
+
+            private JLabel createLabel(String text) {
+                return new JLabel(text, SwingConstants.RIGHT);
+            }
+
+            private JTextField createTextField(String defaultValue) {
+                JTextField textField = new JTextField(1);
+                textField.setText(defaultValue);
+                return textField;
+            }
+
+            private JComboBox<String> createComboBox(String[] items, int selectedIndex) {
+                JComboBox<String> comboBox = new JComboBox<>(items);
+                comboBox.setMaximumSize(comboBox.getPreferredSize());
+                comboBox.setSelectedIndex(selectedIndex);
+                return comboBox;
             }
 
             // 方法提取加载帮助数据
