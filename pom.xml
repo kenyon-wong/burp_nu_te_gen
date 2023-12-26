@@ -6,7 +6,7 @@
 
     <groupId>net.test</groupId>
     <artifactId>Nu_Te_Gen</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.2-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

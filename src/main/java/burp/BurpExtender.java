@@ -3,8 +3,6 @@ package burp;
 import burp.utils.Config;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import javax.swing.*;
 import java.awt.*;
@@ -65,7 +63,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 Nuc_tf_author.setText("ffffffff0x");
 
                 JLabel Nuc_lb_severity = new JLabel("严重程度：", SwingConstants.RIGHT);
-                JComboBox Nuc_Tab_severity = new JComboBox(GetSeverityModes());
+                JComboBox<String> Nuc_Tab_severity = new JComboBox<>(GetSeverityModes());
                 Nuc_Tab_severity.setMaximumSize(Nuc_Tab_severity.getPreferredSize());
                 Nuc_Tab_severity.setSelectedIndex(0);
 
@@ -78,7 +76,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 Nuc_tf_tags.setText("auto");
 
                 JLabel Nuc_lb_req = new JLabel("请求方式：", SwingConstants.RIGHT);
-                JComboBox Nuc_Tab_req = new JComboBox(GetReqModes());
+                JComboBox<String> Nuc_Tab_req = new JComboBox<>(GetReqModes());
                 Nuc_Tab_req.setMaximumSize(Nuc_Tab_req.getPreferredSize());
                 Nuc_Tab_req.setSelectedIndex(0);
 
@@ -87,17 +85,17 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 Nuc_tf_path.setText("");
 
                 JLabel Nuc_lb_headers = new JLabel("Content-Type：", SwingConstants.RIGHT);
-                JComboBox Nuc_Tab_headers = new JComboBox(GetHeadersModes());
+                JComboBox<String> Nuc_Tab_headers = new JComboBox<>(GetHeadersModes());
                 Nuc_Tab_headers.setMaximumSize(Nuc_Tab_headers.getPreferredSize());
                 Nuc_Tab_headers.setSelectedIndex(0);
 
                 JLabel Nuc_lb_body = new JLabel("body：", SwingConstants.RIGHT);
-                JComboBox Nuc_Tab_body = new JComboBox(GetBodyModes());
-                Nuc_Tab_body.setMaximumSize(Nuc_Tab_headers.getPreferredSize());
+                JComboBox<String> Nuc_Tab_body = new JComboBox<>(GetBodyModes());
+                Nuc_Tab_body.setMaximumSize(Nuc_Tab_body.getPreferredSize());
                 Nuc_Tab_body.setSelectedIndex(0);
 
                 JLabel Nuc_lb_redirects = new JLabel("是否跟随跳转：", SwingConstants.RIGHT);
-                JComboBox Nuc_Tab_redirects = new JComboBox(GetRedirectsModes());
+                JComboBox<String> Nuc_Tab_redirects = new JComboBox<>(GetRedirectsModes());
                 Nuc_Tab_redirects.setMaximumSize(Nuc_Tab_redirects.getPreferredSize());
                 Nuc_Tab_redirects.setSelectedIndex(1);
 
@@ -140,13 +138,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
                 JLabel Nuc_lb_Match_extractors = new JLabel("matchers模版 ", SwingConstants.RIGHT);
                 JCheckBox Nuc_CB_Match_extractors = new JCheckBox(" (extractors)");
-                Nuc_CB_Match_extractors.addActionListener(e -> {
-                    if (Nuc_CB_Match_extractors.isSelected()) {
-                        extractors = true;
-                    } else {
-                        extractors = false;
-                    }
-                });
+                Nuc_CB_Match_extractors.addActionListener(e -> extractors = Nuc_CB_Match_extractors.isSelected());
 
                 JLabel Nuc_lb_Match_negative = new JLabel("matchers模版 ", SwingConstants.RIGHT);
                 JCheckBox Nuc_CB_Match_negative = new JCheckBox(" (negative)");
@@ -291,45 +283,36 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
                 Nuc_jp2.add(Nuc_sp_2);
 
+                // 使用方法加载两个帮助数据并创建对应的面板
                 JPanel Nuc_jp3 = new JPanel();
-                Nuc_jp3.setLayout(new GridLayout(1, 1));
+                Nuc_jp3.setLayout(new GridLayout(1, 2));
 
-                String Help_data1 = HelpDataLoader.loadHelpData("/help1.txt");
-
-                JTextArea Nuc_ta_3 = new JTextArea();
-                Nuc_ta_3.setText(Help_data1);
-                Nuc_ta_3.setRows(30);
-                Nuc_ta_3.setColumns(30);
-                Nuc_ta_3.setLineWrap(true);//自动换行
-                Nuc_ta_3.setEditable(true);//可编辑
-                JScrollPane Nuc_sp_3 = new JScrollPane(Nuc_ta_3);
-
-                String Help_data2 = HelpDataLoader.loadHelpData("/help2.txt");
-
-                JTextArea Nuc_ta_4 = new JTextArea();
-                Nuc_ta_4.setText(Help_data2);
-                Nuc_ta_4.setRows(30);
-                Nuc_ta_4.setColumns(30);
-                Nuc_ta_4.setLineWrap(true);//自动换行
-                Nuc_ta_4.setEditable(true);//可编辑
-                JScrollPane Nuc_sp_4 = new JScrollPane(Nuc_ta_4);
+                JScrollPane Nuc_sp_3 = createHelpPanel("/help1.txt");
+                JScrollPane Nuc_sp_4 = createHelpPanel("/help2.txt");
 
                 Nuc_jp3.add(Nuc_sp_3);
                 Nuc_jp3.add(Nuc_sp_4);
 
-                Nuc_bt_1.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Nuc_ta_2.setText(Yaml_Gen(Nuc_tf_id.getText(), Nuc_tf_name.getText(), Nuc_tf_author.getText(), Nuc_tf_description.getText(), Nuc_tf_tags.getText(), Nuc_Tab_redirects.getSelectedItem().toString(), Nuc_tf_redirects_num.getText(), Nuc_Tab_req.getSelectedItem().toString(), Nuc_tf_path.getText(), Nuc_Tab_headers.getSelectedItem().toString(), Nuc_Tab_body.getSelectedItem().toString(), Nuc_Tab_severity.getSelectedItem().toString()));
-                    }
+                Nuc_bt_1.addActionListener(e -> {
+                    Object redirects = Nuc_Tab_redirects.getSelectedItem();
+                    Object req = Nuc_Tab_req.getSelectedItem();
+                    Object headers = Nuc_Tab_headers.getSelectedItem();
+                    Object body = Nuc_Tab_body.getSelectedItem();
+                    Object severity = Nuc_Tab_severity.getSelectedItem();
+
+                    String redirectsString = redirects != null ? redirects.toString() : "";
+                    String reqString = req != null ? req.toString() : "";
+                    String headersString = headers != null ? headers.toString() : "";
+                    String bodyString = body != null ? body.toString() : "";
+                    String severityString = severity != null ? severity.toString() : "";
+
+                    Nuc_ta_2.setText(Yaml_Gen(Nuc_tf_id.getText(), Nuc_tf_name.getText(), Nuc_tf_author.getText(),
+                            Nuc_tf_description.getText(), Nuc_tf_tags.getText(), redirectsString,
+                            Nuc_tf_redirects_num.getText(), reqString, Nuc_tf_path.getText(),
+                            headersString, bodyString, severityString));
                 });
 
-                Nuc_bt_2.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Nuc_ta_2.setText("");
-                    }
-                });
+                Nuc_bt_2.addActionListener(e -> Nuc_ta_2.setText(""));
 
                 tabs = new JTabbedPane();
 
@@ -358,49 +341,68 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
             }
 
+            // 方法提取加载帮助数据
+            private JScrollPane createHelpPanel(String filePath) {
+                JPanel panel = new JPanel();
+                panel.setLayout(new GridLayout(1, 1));
+
+                String helpData = HelpDataLoader.loadHelpData(filePath);
+
+                JTextArea textArea = new JTextArea();
+                textArea.setText(helpData);
+                textArea.setRows(30);
+                textArea.setColumns(30);
+                textArea.setLineWrap(true); // 自动换行
+                textArea.setEditable(true); // 可编辑
+                JScrollPane scrollPane = new JScrollPane(textArea);
+
+                panel.add(scrollPane);
+                return scrollPane;
+            }
+
             private String[] GetReqModes() {
-                ArrayList<String> algStrs = new ArrayList<String>();
+                ArrayList<String> algStrs = new ArrayList<>();
                 Config.reqMode[] backends = Config.reqMode.values();
                 for (Config.reqMode backend : backends) {
                     algStrs.add(backend.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[algStrs.size()]);
+                return algStrs.toArray(new String[0]);
             }
 
             private String[] GetSeverityModes() {
-                ArrayList<String> algStrs = new ArrayList<String>();
+                ArrayList<String> algStrs = new ArrayList<>();
                 Config.severityMode[] backends = Config.severityMode.values();
                 for (Config.severityMode backend : backends) {
                     algStrs.add(backend.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[algStrs.size()]);
+                return algStrs.toArray(new String[0]);
             }
 
             private String[] GetBodyModes() {
-                ArrayList<String> algStrs = new ArrayList<String>();
+                ArrayList<String> algStrs = new ArrayList<>();
                 Config.ContentBodyMode[] backends = Config.ContentBodyMode.values();
                 for (Config.ContentBodyMode backend : backends) {
                     algStrs.add(backend.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[algStrs.size()]);
+                return algStrs.toArray(new String[0]);
             }
 
             private String[] GetHeadersModes() {
-                ArrayList<String> algStrs = new ArrayList<String>();
+                ArrayList<String> algStrs = new ArrayList<>();
                 Config.ContentTypeMode[] backends = Config.ContentTypeMode.values();
                 for (Config.ContentTypeMode backend : backends) {
                     algStrs.add(backend.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[algStrs.size()]);
+                return algStrs.toArray(new String[0]);
             }
 
             private String[] GetRedirectsModes() {
-                ArrayList<String> algStrs = new ArrayList<String>();
+                ArrayList<String> algStrs = new ArrayList<>();
                 Config.RedirectsMode[] backends = Config.RedirectsMode.values();
                 for (Config.RedirectsMode backend : backends) {
                     algStrs.add(backend.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[algStrs.size()]);
+                return algStrs.toArray(new String[0]);
             }
 
         });
@@ -420,10 +422,12 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
         return tabs;
     }
 
-    private String Yaml_Gen(String TP_Id, String TP_Name, String TP_Author, String TP_Description, String TP_Tags, String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header, String TP_Body, String Tp_Severity) {
+    private String Yaml_Gen(String TP_Id, String TP_Name, String TP_Author, String TP_Description, String TP_Tags,
+            String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header,
+            String TP_Body, String Tp_Severity) {
         String data = "";
 
-        //图省事，直接修改此处，硬编码metadata字段
+        // 图省事，直接修改此处，硬编码metadata字段
         String id_info = "id: %s\n\n" +
                 "info:\n" +
                 "  name: %s\n" +
@@ -528,36 +532,36 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 "        regex:\n" +
                 "          - 'Set-Cookie: PHPSESSID=(.*); path=/'\n\n";
 
-        if (TP_Req == "RAW") {
-            if (TP_Header == "urlencoded") {
+        if ("RAW".equals(TP_Req)) {
+            if ("urlencoded".equals(TP_Header)) {
                 TP_Header = "application/x-www-form-urlencoded";
-            } else if (TP_Header == "json") {
+            } else if ("json".equals(TP_Header)) {
                 TP_Header = "application/json";
             }
 
-            if (TP_Body == "带") {
+            if ("带".equals(TP_Body)) {
                 TP_Body = "替换此处";
-            } else if (TP_Body == "不带") {
+            } else if ("不带".equals(TP_Body)) {
                 TP_Body = "";
             }
 
             data += String.format(raw_requests, TP_Path, TP_Header, TP_Body);
         } else {
             data += String.format(requests, TP_Req, TP_Path);
-            if (TP_Header == "urlencoded") {
+            if ("urlencoded".equals(TP_Header)) {
                 data += String.format(Header, "application/x-www-form-urlencoded");
-            } else if (TP_Header == "json") {
+            } else if ("json".equals(TP_Header)) {
                 data += String.format(Header, "application/json");
-            } else if (TP_Header == "xml") {
+            } else if ("xml".equals(TP_Header)) {
                 data += String.format(Header, "text/xml");
             }
 
-            if (!Objects.equals(TP_Body, "不带")) {
+            if (!"不带".equals(TP_Body)) {
                 data += String.format(Body, TP_Body);
             }
         }
 
-        if (TP_IsRedirect == "istrue") {
+        if ("istrue".equals(TP_IsRedirect)) {
             data += String.format(redirects, TP_Redirect_Num);
         }
 
