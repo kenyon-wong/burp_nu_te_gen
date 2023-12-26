@@ -572,30 +572,30 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
             data += String.format(redirects, TP_Redirect_Num);
         }
 
-        Map<Boolean, String> matchersMap = new LinkedHashMap<>();
-        matchersMap.put(match_true, Matchers);
-        matchersMap.put(match_word, MatchersWord);
-        matchersMap.put(match_header, MatchersHeader);
-        matchersMap.put(match_status, MatchersStatus);
-        matchersMap.put(match_negative, MatchersNegative);
-        matchersMap.put(match_time, MatchersTime);
-        matchersMap.put(match_size, MatchersSize);
-        matchersMap.put(match_interactsh_protocol, MatchersInteractsh_Protocol);
-        matchersMap.put(match_interactsh_request, MatchersInteractsh_Request);
-        matchersMap.put(match_regex, MatchersInteractsh_Regex);
-        matchersMap.put(match_binary, MatchersInteractsh_Binary);
-        matchersMap.put(extractors, Extractors);
+        data = getString(data, Matchers, MatchersWord, MatchersHeader, MatchersStatus, MatchersNegative, MatchersTime, match_true, match_word, match_header, match_status, match_negative, match_time);
+        data = getString(data, MatchersSize, MatchersInteractsh_Protocol, MatchersInteractsh_Request, MatchersInteractsh_Regex, MatchersInteractsh_Binary, Extractors, match_size, match_interactsh_protocol, match_interactsh_request, match_regex, match_binary, extractors);
+        return data;
+    }
 
-        StringBuilder dataBuilder = new StringBuilder(data);
-
-        for (Map.Entry<Boolean, String> entry : matchersMap.entrySet()) {
-            if (entry.getKey()) {
-                dataBuilder.append(entry.getValue());
-            }
+    private String getString(String data, String matchers, String matchersWord, String matchersHeader, String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord, boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
+        if (matchTrue) {
+            data += matchers;
         }
-
-        data = dataBuilder.toString();
-
+        if (matchWord) {
+            data += matchersWord;
+        }
+        if (matchHeader) {
+            data += matchersHeader;
+        }
+        if (matchStatus) {
+            data += matchersStatus;
+        }
+        if (matchNegative) {
+            data += matchersNegative;
+        }
+        if (matchTime) {
+            data += matchersTime;
+        }
         return data;
     }
 }
