@@ -213,58 +213,69 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                     }
                 });
 
-                Nuc_jp1.add(Nuc_bt_1);
-                Nuc_jp1.add(Nuc_bt_2);
-                Nuc_jp1.add(Nuc_lb_id);
-                Nuc_jp1.add(Nuc_tf_id);
-                Nuc_jp1.add(Nuc_lb_name);
-                Nuc_jp1.add(Nuc_tf_name);
-                Nuc_jp1.add(Nuc_lb_author);
-                Nuc_jp1.add(Nuc_tf_author);
-                Nuc_jp1.add(Nuc_lb_severity);
-                Nuc_jp1.add(Nuc_Tab_severity);
-                Nuc_jp1.add(Nuc_lb_description);
-                Nuc_jp1.add(Nuc_tf_description);
-                Nuc_jp1.add(Nuc_lb_tags);
-                Nuc_jp1.add(Nuc_tf_tags);
-                Nuc_jp1.add(Nuc_lb_req);
-                Nuc_jp1.add(Nuc_Tab_req);
-                Nuc_jp1.add(Nuc_lb_path);
-                Nuc_jp1.add(Nuc_tf_path);
-                Nuc_jp1.add(Nuc_lb_headers);
-                Nuc_jp1.add(Nuc_Tab_headers);
-                Nuc_jp1.add(Nuc_lb_body);
-                Nuc_jp1.add(Nuc_Tab_body);
-                Nuc_jp1.add(Nuc_lb_redirects);
-                Nuc_jp1.add(Nuc_Tab_redirects);
-                Nuc_jp1.add(Nuc_lb_redirects_num);
-                Nuc_jp1.add(Nuc_tf_redirects_num);
+                Component[] components = {
+                        Nuc_bt_1,
+                        Nuc_bt_2,
+                        Nuc_lb_id,
+                        Nuc_tf_id,
+                        Nuc_lb_name,
+                        Nuc_tf_name,
+                        Nuc_lb_author,
+                        Nuc_tf_author,
+                        Nuc_lb_severity,
+                        Nuc_Tab_severity,
+                        Nuc_lb_description,
+                        Nuc_tf_description,
+                        Nuc_lb_tags,
+                        Nuc_tf_tags,
+                        Nuc_lb_req,
+                        Nuc_Tab_req,
+                        Nuc_lb_path,
+                        Nuc_tf_path,
+                        Nuc_lb_headers,
+                        Nuc_Tab_headers,
+                        Nuc_lb_body,
+                        Nuc_Tab_body,
+                        Nuc_lb_redirects,
+                        Nuc_Tab_redirects,
+                        Nuc_lb_redirects_num,
+                        Nuc_tf_redirects_num
+                };
+
+                for (Component component : components) {
+                    Nuc_jp1.add(component);
+                }
 
                 JPanel Nuc_jp4 = new JPanel();
                 Nuc_jp4.setLayout(new GridLayout(14, 2));
 
-                Nuc_jp4.add(Nuc_lb_Match_word);
-                Nuc_jp4.add(Nuc_CB_Match_word);
-                Nuc_jp4.add(Nuc_lb_Match_header);
-                Nuc_jp4.add(Nuc_CB_Match_header);
-                Nuc_jp4.add(Nuc_lb_Match_status);
-                Nuc_jp4.add(Nuc_CB_Match_status);
-                Nuc_jp4.add(Nuc_lb_Match_extractors);
-                Nuc_jp4.add(Nuc_CB_Match_extractors);
-                Nuc_jp4.add(Nuc_lb_Match_negative);
-                Nuc_jp4.add(Nuc_CB_Match_negative);
-                Nuc_jp4.add(Nuc_lb_Match_time);
-                Nuc_jp4.add(Nuc_CB_Match_time);
-                Nuc_jp4.add(Nuc_lb_Match_size);
-                Nuc_jp4.add(Nuc_CB_Match_size);
-                Nuc_jp4.add(Nuc_lb_Match_interactsh_protocol);
-                Nuc_jp4.add(Nuc_CB_Match_interactsh_protocol);
-                Nuc_jp4.add(Nuc_lb_Match_interactsh_request);
-                Nuc_jp4.add(Nuc_CB_Match_interactsh_request);
-                Nuc_jp4.add(Nuc_lb_Match_regex);
-                Nuc_jp4.add(Nuc_CB_Match_regex);
-                Nuc_jp4.add(Nuc_lb_Match_binary);
-                Nuc_jp4.add(Nuc_CB_Match_binary);
+                Component[] matchComponents = {
+                        Nuc_lb_Match_word,
+                        Nuc_CB_Match_word,
+                        Nuc_lb_Match_header,
+                        Nuc_CB_Match_header,
+                        Nuc_lb_Match_status,
+                        Nuc_CB_Match_status,
+                        Nuc_lb_Match_extractors,
+                        Nuc_CB_Match_extractors,
+                        Nuc_lb_Match_negative,
+                        Nuc_CB_Match_negative,
+                        Nuc_lb_Match_time,
+                        Nuc_CB_Match_time,
+                        Nuc_lb_Match_size,
+                        Nuc_CB_Match_size,
+                        Nuc_lb_Match_interactsh_protocol,
+                        Nuc_CB_Match_interactsh_protocol,
+                        Nuc_lb_Match_interactsh_request,
+                        Nuc_CB_Match_interactsh_request,
+                        Nuc_lb_Match_regex, Nuc_CB_Match_regex,
+                        Nuc_lb_Match_binary, Nuc_CB_Match_binary
+                };
+
+                for (Component component : matchComponents) {
+                    Nuc_jp4.add(component);
+                }
+
 
                 JPanel Nuc_jp2 = new JPanel();
                 Nuc_jp2.setLayout(new GridLayout(1, 1));
@@ -561,43 +572,30 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
             data += String.format(redirects, TP_Redirect_Num);
         }
 
-        if (match_true) {
-            data += Matchers;
-        }
-        if (match_word) {
-            data += MatchersWord;
-        }
-        if (match_header) {
-            data += MatchersHeader;
-        }
-        if (match_status) {
-            data += MatchersStatus;
-        }
-        if (match_negative) {
-            data += MatchersNegative;
-        }
-        if (match_time) {
-            data += MatchersTime;
-        }
-        if (match_size) {
-            data += MatchersSize;
-        }
-        if (match_interactsh_protocol) {
-            data += MatchersInteractsh_Protocol;
-        }
-        if (match_interactsh_request) {
-            data += MatchersInteractsh_Request;
-        }
-        if (match_regex) {
-            data += MatchersInteractsh_Regex;
-        }
-        if (match_binary) {
-            data += MatchersInteractsh_Binary;
+        Map<Boolean, String> matchersMap = new LinkedHashMap<>();
+        matchersMap.put(match_true, Matchers);
+        matchersMap.put(match_word, MatchersWord);
+        matchersMap.put(match_header, MatchersHeader);
+        matchersMap.put(match_status, MatchersStatus);
+        matchersMap.put(match_negative, MatchersNegative);
+        matchersMap.put(match_time, MatchersTime);
+        matchersMap.put(match_size, MatchersSize);
+        matchersMap.put(match_interactsh_protocol, MatchersInteractsh_Protocol);
+        matchersMap.put(match_interactsh_request, MatchersInteractsh_Request);
+        matchersMap.put(match_regex, MatchersInteractsh_Regex);
+        matchersMap.put(match_binary, MatchersInteractsh_Binary);
+        matchersMap.put(extractors, Extractors);
+
+        StringBuilder dataBuilder = new StringBuilder(data);
+
+        for (Map.Entry<Boolean, String> entry : matchersMap.entrySet()) {
+            if (entry.getKey()) {
+                dataBuilder.append(entry.getValue());
+            }
         }
 
-        if (extractors) {
-            data += Extractors;
-        }
+        data = dataBuilder.toString();
+
         return data;
     }
 }
