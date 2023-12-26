@@ -9,8 +9,6 @@ import java.awt.*;
 import java.util.*;
 
 public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
-    private IBurpExtenderCallbacks callbacks;
-    private IExtensionHelpers helpers;
     private JTabbedPane tabs;
     public PrintWriter stdout;
 
@@ -33,9 +31,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
         this.stdout.println("hello Nu_Te_Gen!");
         this.stdout.println("version:1.4");
 
-        this.callbacks = callbacks;
-
-        helpers = callbacks.getHelpers();
+        callbacks.getHelpers();
 
         callbacks.setExtensionName("Nu_Te_Gen V1.4");
 
