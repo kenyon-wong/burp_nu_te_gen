@@ -1,0 +1,93 @@
+id: %s
+
+info:
+  name: %s
+  author: %s
+  severity: %s
+  description: |
+    %s
+  metadata:
+    fofa-query:
+    shodan-query:
+    hunter-query:
+  reference:
+    - https://
+  tags: %s
+
+http:
+  - method: %s
+    path:
+      - "{{BaseURL}}%s"
+
+    headers:
+      Content-Type: %s
+
+    body: |
+      %s
+
+    host-redirects: true
+    max-redirects: %s
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: body
+        words:
+          - 'test1'
+          - 'test2'
+        condition: or
+
+      - type: word
+        part: header
+        words:
+          - 'tomcat'
+
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "荣耀立方"
+          - 'var model = "LW-N605R"'
+        part: body
+        negative: true
+        condition: or
+
+      - type: dsl
+        dsl:
+          - 'duration>=6'
+
+      - type: dsl
+        dsl:
+          - 'len(body)<130'
+
+      - type: word
+        part: interactsh_protocol  # 配合 {{interactsh-url}} 关键词使用
+        words:
+          - "http"
+
+      - type: regex
+        part: interactsh_request   # 配合 {{interactsh-url}} 关键词使用
+        regex:
+          - "root:.*:0:0:"
+
+      - type: regex
+        regex:
+          - "root:.*:0:0:"
+        part: body
+
+      - type: binary
+        binary:
+          - "D0CF11E0"  # db
+          - "53514C69746520"  # SQLite
+        part: body
+        condition: or
+
+    extractors:
+      - part: header
+        internal: true
+        group: 1
+        type: regex
+        regex:
+          - 'Set-Cookie: PHPSESSID=(.*); path=/'
