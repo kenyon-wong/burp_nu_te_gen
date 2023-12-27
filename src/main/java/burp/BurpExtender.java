@@ -209,7 +209,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                         Nuc_lb_req, Nuc_Tab_req,
                         Nuc_lb_path, Nuc_tf_path,
                         Nuc_lb_headers, Nuc_Tab_headers,
-                        Nuc_lb_body,  Nuc_Tab_body,
+                        Nuc_lb_body, Nuc_Tab_body,
                         Nuc_lb_redirects, Nuc_Tab_redirects,
                         Nuc_lb_redirects_num, Nuc_tf_redirects_num
                 };
@@ -525,7 +525,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
             }
 
             if ("带".equals(TP_Body)) {
-                TP_Body = "替换此处";
+                TP_Body = "Body";
             } else if ("不带".equals(TP_Body)) {
                 TP_Body = "";
             }
@@ -550,12 +550,17 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
             data += String.format(redirects, TP_Redirect_Num);
         }
 
-        data = getString(data, Matchers, MatchersWord, MatchersHeader, MatchersStatus, MatchersNegative, MatchersTime, match_true, match_word, match_header, match_status, match_negative, match_time);
-        data = getString(data, MatchersSize, MatchersInteractsh_Protocol, MatchersInteractsh_Request, MatchersInteractsh_Regex, MatchersInteractsh_Binary, Extractors, match_size, match_interactsh_protocol, match_interactsh_request, match_regex, match_binary, extractors);
+        data = getString(data, Matchers, MatchersWord, MatchersHeader, MatchersStatus, MatchersNegative, MatchersTime,
+                match_true, match_word, match_header, match_status, match_negative, match_time);
+        data = getString(data, MatchersSize, MatchersInteractsh_Protocol, MatchersInteractsh_Request,
+                MatchersInteractsh_Regex, MatchersInteractsh_Binary, Extractors, match_size, match_interactsh_protocol,
+                match_interactsh_request, match_regex, match_binary, extractors);
         return data;
     }
 
-    private String getString(String data, String matchers, String matchersWord, String matchersHeader, String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord, boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
+    private String getString(String data, String matchers, String matchersWord, String matchersHeader,
+            String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord,
+            boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
         if (matchTrue) {
             data += matchers;
         }
