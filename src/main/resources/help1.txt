@@ -36,7 +36,7 @@ http:
         
         {"username":{{username}},"password":{{password}}}
 
-    attack: clusterbomb   # 定义HTTP模糊攻击类型，可用类型： batteringram,pitchfork,clusterbomb
+    attack: clusterbomb   # 可用类型： batteringram,pitchfork,clusterbomb
     payloads:
       username:
         - 'admin'
