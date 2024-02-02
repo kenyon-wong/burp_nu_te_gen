@@ -3,7 +3,7 @@
 nuclei 2.9.1 版本更新了模板格式。如果使用的是较旧的 nuclei 版本，可能无法解析新的模板格式。
 建议将 nuclei 版本升级至 2.9.1 或更高版本以确保正确解析模板格式。
 
- ===========================示例模板===========================
+ ===========================示例模板===================
 id: template-id
 
 info:
@@ -42,21 +42,24 @@ http:
         - 'admin'
       password:
         - 'admin'
-      # header: helpers/wordlists/header.txt
       Path: 
         - 'api/selectContentManagePage'
+      # header: helpers/wordlists/header.txt
     
     matchers-condition: and
     matchers:
       - type: dsl
         dsl:
-          - "contains(body, 'pageSize')"
-          - "contains(body_1, 'pageSize') && contains(body_2, 'pageNum')"
+          - "status_code == 200"
           - "contains_all(body_1, 'pageSize', 'pageNum')" #单个body包内指定多个匹配关键字
           - "contains(header, 'application/json')"
-          - "status_code == 200"
-          - "status_code_1 == 404 && status_code_2 == 200"
+        condition: and
 
+      - type: dsl
+        dsl:
+          - "contains(body, 'pageSize')"
+          - "contains(body_1, 'pageSize') && contains(body_2, 'pageNum')"
+          - "status_code_1 == 404 && status_code_2 == 200"
           # 检查Cookie的MD5校验和是否包含在大写的请求体中
           - "contains(toupper(body), md5(cookie))"
         condition: and
@@ -74,27 +77,6 @@ http:
         part: body
         words:
           - "{{first_2}}"
-
-      # Interactsh匹配器，需要和使用 {{interactsh_response}}
-      # 可匹配 interactsh_protocol、interactsh_request和 interactsh_response 三处
-
-      # 确认HTTP交互
-      - type: word
-        part: interactsh_protocol 
-        words:
-          - "http"
-
-      # 确认检索/etc/passwd文件
-      - type: regex
-        part: interactsh_request 
-        regex:
-          - "root:[x*]:0:0:"
-
-      # 确认DNS交互
-      - type: word
-        part: interactsh_response 
-        words:
-          - "dns"
 
       # 二进制流匹配
       - type: binary
@@ -118,6 +100,14 @@ http:
         part: header
         negative: true
 
+    # 通过json提取器进行取值
+    extractors:
+      - type: json
+        name: api
+        part: body
+        json:
+          - '.MinioEnv | {MINIO_ACCESS_KEY, MINIO_SECRET_KEY}'
+
     extractors:
       - type: regex
         # 为提取的信息命名，方便调用，可省略
@@ -129,20 +119,44 @@ http:
           - "(?m)[0-9]{3,10}\\.[0-9]+"
 
  ----------------------------分割线----------------------------
-# 嵌套表达式
-❌ {{url_decode({{base64_decode('SGVsbG8=')}})}}
-✔ {{url_decode(base64_decode('SGVsbG8='))}}
-
-# 如果需要在 extractor 中使用,比如将 extractor 提取的变量值 test 进行处理
-{{url_decode(base64_decode('{{test}}'))}}
-
- ----------------------------分割线----------------------------
 # 自 Nuclei v2.3.6 发行以来，Nuclei 支持使用 interact.sh API 内置自动请求关联来实现基于 OOB 的漏洞扫描
+# Interactsh匹配器，需要和使用 {{interactsh_response}}
+# 可匹配 interactsh_protocol、interactsh_request和 interactsh_response 三处
+
 http:
   - raw:
       - |
         GET /plugins/servlet/oauth/users/icon-uri?consumerUri={{interactsh-url}} HTTP/1.1
         Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      # 确认HTTP交互
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+
+      # 确认DNS交互
+      - type: word
+        part: interactsh_response
+        words:
+          - "dns"
+
+      # 确认检索/etc/passwd文件
+      - type: regex
+        part: interactsh_request
+        regex:
+          - "root:[x*]:0:0:"
+      condition: and
+
+ ----------------------------分割线----------------------------
+# 嵌套表达式
+ ❌ {{url_decode({{base64_decode('SGVsbG8=')}})}}
+ ✔  {{url_decode(base64_decode('SGVsbG8='))}}
+
+# 如果需要在 extractor 中使用,比如将 extractor 提取的变量值 test 进行处理
+ {{url_decode(base64_decode('{{test}}'))}}
 
  ----------------------------分割线----------------------------
  # JAVA反序列化: https://docs.nuclei.sh/template-guide/helper-functions#deserialization-helper-functions
@@ -186,7 +200,6 @@ http:
 id: wp-related-post-xss
 
 http:
-  # 发送一个POST请求
   - method: POST
     path: 
       - '{{RootURL}}/wp-login.php'
