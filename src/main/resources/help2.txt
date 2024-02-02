@@ -3,14 +3,14 @@
  ----------------------------分割线----------------------------
  # https://example.com:443/foo/bar.php
 
-{{BaseURL}}	        # https://example.com:443/foo/bar.php
-{{RootURL}}	        # https://example.com:443
-{{Hostname}}        # example.com:443
-{{Host}}            # example.com
-{{Port}}            # 443
-{{Path}}            # /foo
-{{File}}            # bar.php
-{{Scheme}}          # https
+{{BaseURL}}	       # https://example.com:443/foo/bar.php
+{{RootURL}}	       # https://example.com:443
+{{Hostname}}           # example.com:443
+{{Host}}                    # example.com
+{{Port}}                     # 443
+{{Path}}                    # /foo
+{{File}}                      # bar.php
+{{Scheme}}              # https
 
  ----------------------------分割线----------------------------
  # 重点配置参数备忘：
@@ -124,7 +124,7 @@
  # www.projectdiscovery.io
 
 {{FQDN}}			# www.projectdiscovery.io
-{{RDN}}				# projectdiscovery.io
-{{DN}}				# projectdiscovery
-{{SD}}				# www
-{{TLD}}				# io
+{{RDN}}			# projectdiscovery.io
+{{DN}}}			# projectdiscovery
+{{SD}}			# www
+{{TLD}}			# io
