@@ -11,7 +11,6 @@ import java.util.*;
 public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
     private JTabbedPane tabs;
     public PrintWriter stdout;
-
     boolean match_true;
     boolean match_word;
     boolean match_header;
@@ -81,8 +80,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
                 JLabel Nuc_lb_redirects_num = createLabel("跳转次数：");
                 JTextField Nuc_tf_redirects_num = createTextField("0");
-
-                // 分割
 
                 JLabel Nuc_lb_Match_word = new JLabel("matchers模版 ", SwingConstants.RIGHT);
                 JCheckBox Nuc_CB_Match_word = new JCheckBox(" (word)");
@@ -314,14 +311,13 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
             }
 
             private JTextField createTextField(String defaultValue) {
-                JTextField textField = new JTextField(1);
+                JTextField textField = new JTextField();
                 textField.setText(defaultValue);
                 return textField;
             }
 
             private JComboBox<String> createComboBox(String[] items, int selectedIndex) {
                 JComboBox<String> comboBox = new JComboBox<>(items);
-                comboBox.setMaximumSize(comboBox.getPreferredSize());
                 comboBox.setSelectedIndex(selectedIndex);
                 return comboBox;
             }
@@ -345,51 +341,33 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
                 return scrollPane;
             }
 
-            private String[] GetReqModes() {
-                ArrayList<String> algStrs = new ArrayList<>();
-                Config.reqMode[] backends = Config.reqMode.values();
-                for (Config.reqMode backend : backends) {
-                    algStrs.add(backend.name().replace('_', '/'));
+            private String[] enumToStringArray(Enum<?>[] enumValues) {
+                ArrayList<String> stringList = new ArrayList<>();
+                for (Enum<?> enumValue : enumValues) {
+                    stringList.add(enumValue.name().replace('_', '/'));
                 }
-                return algStrs.toArray(new String[0]);
+                return stringList.toArray(new String[0]);
+            }
+
+            private String[] GetReqModes() {
+                return enumToStringArray(Config.reqMode.values());
             }
 
             private String[] GetSeverityModes() {
-                ArrayList<String> algStrs = new ArrayList<>();
-                Config.severityMode[] backends = Config.severityMode.values();
-                for (Config.severityMode backend : backends) {
-                    algStrs.add(backend.name().replace('_', '/'));
-                }
-                return algStrs.toArray(new String[0]);
+                return enumToStringArray(Config.severityMode.values());
             }
 
             private String[] GetBodyModes() {
-                ArrayList<String> algStrs = new ArrayList<>();
-                Config.ContentBodyMode[] backends = Config.ContentBodyMode.values();
-                for (Config.ContentBodyMode backend : backends) {
-                    algStrs.add(backend.name().replace('_', '/'));
-                }
-                return algStrs.toArray(new String[0]);
+                return enumToStringArray(Config.ContentBodyMode.values());
             }
 
             private String[] GetHeadersModes() {
-                ArrayList<String> algStrs = new ArrayList<>();
-                Config.ContentTypeMode[] backends = Config.ContentTypeMode.values();
-                for (Config.ContentTypeMode backend : backends) {
-                    algStrs.add(backend.name().replace('_', '/'));
-                }
-                return algStrs.toArray(new String[0]);
+                return enumToStringArray(Config.ContentTypeMode.values());
             }
 
             private String[] GetRedirectsModes() {
-                ArrayList<String> algStrs = new ArrayList<>();
-                Config.RedirectsMode[] backends = Config.RedirectsMode.values();
-                for (Config.RedirectsMode backend : backends) {
-                    algStrs.add(backend.name().replace('_', '/'));
-                }
-                return algStrs.toArray(new String[0]);
+                return enumToStringArray(Config.RedirectsMode.values());
             }
-
         });
     }
 
@@ -408,8 +386,8 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
     }
 
     private String Yaml_Gen(String TP_Id, String TP_Name, String TP_Author, String TP_Description, String TP_Tags,
-            String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header,
-            String TP_Body, String Tp_Severity) {
+                            String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header,
+                            String TP_Body, String Tp_Severity) {
         String data = "";
 
         // 图省事，直接修改此处，硬编码metadata字段
@@ -571,50 +549,46 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
 
                 """;
 
+        // 将TP_Header转换为适当的Content-Type
+        if ("urlencoded".equals(TP_Header)) {
+            TP_Header = "application/x-www-form-urlencoded";
+        } else if ("json".equals(TP_Header)) {
+            TP_Header = "application/json";
+        } else if ("xml".equals(TP_Header) && !"RAW".equals(TP_Req)) {
+            TP_Header = "text/xml";
+        }
+
+        // 处理TP_Body的条件
         if ("RAW".equals(TP_Req)) {
-            if ("urlencoded".equals(TP_Header)) {
-                TP_Header = "application/x-www-form-urlencoded";
-            } else if ("json".equals(TP_Header)) {
-                TP_Header = "application/json";
-            }
-
-            if ("带".equals(TP_Body)) {
-                TP_Body = "Body";
-            } else if ("不带".equals(TP_Body)) {
-                TP_Body = "";
-            }
-
+            TP_Body = "带".equals(TP_Body) ? "Body" : "";
             data += String.format(raw_requests, TP_Path, TP_Header, TP_Body);
         } else {
-            data += String.format(requests, TP_Req, TP_Path);
-            if ("urlencoded".equals(TP_Header)) {
-                data += String.format(Header, "application/x-www-form-urlencoded");
-            } else if ("json".equals(TP_Header)) {
-                data += String.format(Header, "application/json");
-            } else if ("xml".equals(TP_Header)) {
-                data += String.format(Header, "text/xml");
-            }
-
             if (!"不带".equals(TP_Body)) {
                 data += String.format(Body, TP_Body);
             }
+            data += String.format(requests, TP_Req, TP_Path);
+            data += String.format(Header, TP_Header);
         }
 
+        // 处理重定向
         if ("istrue".equals(TP_IsRedirect)) {
             data += String.format(redirects, TP_Redirect_Num);
         }
 
+        // 添加匹配器和提取器
         data = getString(data, Matchers, MatchersWord, MatchersHeader, MatchersStatus, MatchersNegative, MatchersTime,
                 match_true, match_word, match_header, match_status, match_negative, match_time);
         data = getString(data, MatchersSize, MatchersInteractsh_Protocol, MatchersInteractsh_Request,
                 MatchersInteractsh_Regex, MatchersInteractsh_Binary, Extractors, match_size, match_interactsh_protocol,
                 match_interactsh_request, match_regex, match_binary, extractors);
+
         return data;
+
     }
 
     private String getString(String data, String matchers, String matchersWord, String matchersHeader,
-            String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord,
-            boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
+                             String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord,
+                             boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
         if (matchTrue) {
             data += matchers;
         }
