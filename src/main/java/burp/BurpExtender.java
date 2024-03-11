@@ -413,109 +413,163 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
         String data = "";
 
         // 图省事，直接修改此处，硬编码metadata字段
-        String id_info = "id: %s\n\n" +
-                "info:\n" +
-                "  name: %s\n" +
-                "  author: %s\n" +
-                "  severity: %s\n" +
-                "  description: |\n" +
-                "    %s\n" +
-                "  metadata:\n" +
-                "    fofa-query: \n" +
-                "    shodan-query: \n" +
-                "    hunter-query: \n" +
-                "  reference:\n" +
-                "    - https://\n" +
-                "  tags: %s\n\n";
+        String id_info = """
+                id: %s
+
+                info:
+                  name: %s
+                  author: %s
+                  severity: %s
+                  description: |
+                    %s
+                  metadata:
+                    fofa-query:\s
+                    shodan-query:\s
+                    hunter-query:\s
+                  reference:
+                    - https://
+                  tags: %s
+
+                """;
         data += String.format(id_info, TP_Id, TP_Name, TP_Author, Tp_Severity, TP_Description, TP_Tags);
 
-        String raw_requests = "http:\n" +
-                "  - raw:\n" +
-                "      - |\n" +
-                "        POST %s HTTP/1.1\n" +
-                "        Host: {{Hostname}}\n" +
-                "        Content-Type: %s\n" +
-                "\n" +
-                "        %s\n\n";
+        String raw_requests = """
+                http:
+                  - raw:
+                      - |
+                        POST %s HTTP/1.1
+                        Host: {{Hostname}}
+                        Content-Type: %s
 
-        String requests = "http:\n" +
-                "  - method: %s\n" +
-                "    path:\n" +
-                "      - \"{{BaseURL}}%s\"\n\n";
+                        %s
 
-        String Header = "    headers:\n" +
-                "      Content-Type: %s\n\n";
+                """;
 
-        String Body = "    body: |\n" +
-                "      替换此处注意每行缩进\n\n";
+        String requests = """
+                http:
+                  - method: %s
+                    path:
+                      - "{{BaseURL}}%s"
 
-        String redirects = "    host-redirects: true\n" +
-                "    max-redirects: %s\n\n";
+                """;
 
-        String Matchers = "    matchers-condition: and\n" +
-                "    matchers:\n";
+        String Header = """
+                    headers:
+                      Content-Type: %s
 
-        String MatchersWord = "      - type: word\n" +
-                "        part: body\n" +
-                "        words:\n" +
-                "          - 'test1'\n" +
-                "          - 'test2'\n" +
-                "        condition: or\n\n";
+                """;
 
-        String MatchersHeader = "      - type: word\n" +
-                "        part: header\n" +
-                "        words:\n" +
-                "          - 'tomcat'\n\n";
+        String Body = """
+                    body: |
+                      替换此处注意每行缩进
 
-        String MatchersStatus = "      - type: status\n" +
-                "        status:\n" +
-                "          - 200\n\n";
+                """;
 
-        String MatchersNegative = "      - type: word\n" +
-                "        words:\n" +
-                "          - \"荣耀立方\"\n" +
-                "          - 'var model = \"LW-N605R\"'\n" +
-                "        part: body\n" +
-                "        negative: true\n" +
-                "        condition: or\n\n";
+        String redirects = """
+                    host-redirects: true
+                    max-redirects: %s
 
-        String MatchersTime = "      - type: dsl\n" +
-                "        dsl:\n" +
-                "          - 'duration>=6'\n\n";
+                """;
 
-        String MatchersSize = "      - type: dsl\n" +
-                "        dsl:\n" +
-                "          - 'len(body)<130'\n\n";
+        String Matchers = """
+                    matchers-condition: and
+                    matchers:
+                """;
 
-        String MatchersInteractsh_Protocol = "      - type: word\n" +
-                "        part: interactsh_protocol  # 配合 {{interactsh-url}} 关键词使用\n" +
-                "        words:\n" +
-                "          - \"http\"\n\n";
+        String MatchersWord = """
+                      - type: word
+                        part: body
+                        words:
+                          - 'test1'
+                          - 'test2'
+                        condition: or
 
-        String MatchersInteractsh_Request = "      - type: regex\n" +
-                "        part: interactsh_request   # 配合 {{interactsh-url}} 关键词使用\n" +
-                "        regex:\n" +
-                "          - \"root:.*:0:0:\"\n\n";
+                """;
 
-        String MatchersInteractsh_Regex = "      - type: regex\n" +
-                "        regex:\n" +
-                "          - \"root:.*:0:0:\"\n" +
-                "        part: body\n\n";
+        String MatchersHeader = """
+                      - type: word
+                        part: header
+                        words:
+                          - 'tomcat'
 
-        String MatchersInteractsh_Binary = "      - type: binary\n" +
-                "        binary:\n" +
-                "          - \"D0CF11E0\"  # db\n" +
-                "          - \"53514C69746520\"  # SQLite\n" +
-                "        part: body\n" +
-                "        condition: or\n\n";
+                """;
 
-        String Extractors = "    extractors:\n" +
-                "      - part: header\n" +
-                "        internal: true\n" +
-                "        group: 1\n" +
-                "        type: regex\n" +
-                "        regex:\n" +
-                "          - 'Set-Cookie: PHPSESSID=(.*); path=/'\n\n";
+        String MatchersStatus = """
+                      - type: status
+                        status:
+                          - 200
+
+                """;
+
+        String MatchersNegative = """
+                      - type: word
+                        words:
+                          - "荣耀立方"
+                          - 'var model = "LW-N605R"'
+                        part: body
+                        negative: true
+                        condition: or
+
+                """;
+
+        String MatchersTime = """
+                      - type: dsl
+                        dsl:
+                          - 'duration>=6'
+
+                """;
+
+        String MatchersSize = """
+                      - type: dsl
+                        dsl:
+                          - 'len(body)<130'
+
+                """;
+
+        String MatchersInteractsh_Protocol = """
+                      - type: word
+                        part: interactsh_protocol  # 配合 {{interactsh-url}} 关键词使用
+                        words:
+                          - "http"
+
+                """;
+
+        String MatchersInteractsh_Request = """
+                      - type: regex
+                        part: interactsh_request   # 配合 {{interactsh-url}} 关键词使用
+                        regex:
+                          - "root:.*:0:0:"
+
+                """;
+
+        String MatchersInteractsh_Regex = """
+                      - type: regex
+                        regex:
+                          - "root:.*:0:0:"
+                        part: body
+
+                """;
+
+        String MatchersInteractsh_Binary = """
+                      - type: binary
+                        binary:
+                          - "D0CF11E0"  # db
+                          - "53514C69746520"  # SQLite
+                        part: body
+                        condition: or
+
+                """;
+
+        String Extractors = """
+                    extractors:
+                      - part: header
+                        internal: true
+                        group: 1
+                        type: regex
+                        regex:
+                          - 'Set-Cookie: PHPSESSID=(.*); path=/'
+
+                """;
 
         if ("RAW".equals(TP_Req)) {
             if ("urlencoded".equals(TP_Header)) {
