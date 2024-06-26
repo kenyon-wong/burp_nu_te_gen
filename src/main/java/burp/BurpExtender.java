@@ -11,18 +11,9 @@ import java.util.*;
 public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
     private JTabbedPane tabs;
     public PrintWriter stdout;
-    boolean match_true;
-    boolean match_word;
-    boolean match_header;
-    boolean match_status;
-    boolean match_negative;
-    boolean match_time;
-    boolean match_size;
-    boolean match_interactsh_protocol;
-    boolean match_interactsh_request;
-    boolean match_regex;
-    boolean match_binary;
-    boolean extractors;
+    private Map<String, Boolean> matchFlags;
+    private boolean extractors;
+    private Map<String, JComponent> components;
 
     @Override
     public void registerExtenderCallbacks(final IBurpExtenderCallbacks callbacks) {
@@ -31,348 +22,231 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
         this.stdout.println("version:1.4");
 
         callbacks.getHelpers();
-
         callbacks.setExtensionName("Nu_Te_Gen V1.4");
 
-        SwingUtilities.invokeLater(new Runnable() {
+        initializeMatchFlags();
 
-            @Override
-            public void run() {
+        SwingUtilities.invokeLater(() -> createUI(callbacks));
+    }
 
-                JPanel Nuc_jp1 = new JPanel();
-                Nuc_jp1.setLayout(new GridLayout(13, 1));
+    private void initializeMatchFlags() {
+        matchFlags = new HashMap<>();
+        matchFlags.put("word", false);
+        matchFlags.put("header", false);
+        matchFlags.put("status", false);
+        matchFlags.put("negative", false);
+        matchFlags.put("time", false);
+        matchFlags.put("size", false);
+        matchFlags.put("interactsh_protocol", false);
+        matchFlags.put("interactsh_request", false);
+        matchFlags.put("regex", false);
+        matchFlags.put("binary", false);
+    }
 
-                JButton Nuc_bt_1 = new JButton("生成");
-                JButton Nuc_bt_2 = new JButton("清空");
+    private void createUI(IBurpExtenderCallbacks callbacks) {
+        JPanel mainPanel = createMainPanel();
+        JPanel matchersPanel = createMatchersPanel();
+        JPanel outputPanel = createOutputPanel();
+        JPanel helpPanel = createHelpPanel();
 
-                JLabel Nuc_lb_id = createLabel("模版id：");
-                JTextField Nuc_tf_id = createTextField("test");
+        JSplitPane leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mainPanel, matchersPanel);
+        leftSplitPane.setDividerLocation(450);
 
-                JLabel Nuc_lb_name = createLabel("模版名称：");
-                JTextField Nuc_tf_name = createTextField("test");
+        JSplitPane rightSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, outputPanel, helpPanel);
+        rightSplitPane.setDividerLocation(430);
 
-                JLabel Nuc_lb_author = createLabel("作者名称：");
-                JTextField Nuc_tf_author = createTextField("ffffffff0x");
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSplitPane, rightSplitPane);
+        mainSplitPane.setDividerLocation(380);
 
-                JLabel Nuc_lb_severity = createLabel("严重程度：");
-                JComboBox<String> Nuc_Tab_severity = createComboBox(GetSeverityModes(), 0);
+        tabs = new JTabbedPane();
+        tabs.addTab("Template生成", mainSplitPane);
 
-                JLabel Nuc_lb_description = createLabel("描述：");
-                JTextField Nuc_tf_description = createTextField("由插件自动生成");
+        callbacks.customizeUiComponent(tabs);
+        callbacks.addSuiteTab(BurpExtender.this);
+        callbacks.registerHttpListener(BurpExtender.this);
+    }
 
-                JLabel Nuc_lb_tags = createLabel("Tags：");
-                JTextField Nuc_tf_tags = createTextField("auto");
+    private JPanel createMainPanel() {
+        JPanel panel = new JPanel(new GridLayout(13, 1));
 
-                JLabel Nuc_lb_req = createLabel("请求方式：");
-                JComboBox<String> Nuc_Tab_req = createComboBox(GetReqModes(), 0);
+        JButton generateButton = new JButton("生成");
+        JButton clearButton = new JButton("清空");
 
-                JLabel Nuc_lb_path = createLabel("请求路径：");
-                JTextField Nuc_tf_path = createTextField("");
+        String[] labels = {"模版id：", "模版名称：", "作者名称：", "严重程度：", "描述：", "Tags：",
+                "请求方式：", "请求路径：", "Content-Type：", "body：", "是否跟随跳转：", "跳转次数："};
+        String[] defaultValues = {"test", "test", "ffffffff0x", "", "由插件自动生成", "auto", "", "", "", "", "", "0"};
 
-                JLabel Nuc_lb_headers = createLabel("Content-Type：");
-                JComboBox<String> Nuc_Tab_headers = createComboBox(GetHeadersModes(), 0);
+        components = new HashMap<>();
 
-                JLabel Nuc_lb_body = createLabel("body：");
-                JComboBox<String> Nuc_Tab_body = createComboBox(GetBodyModes(), 0);
+        for (int i = 0; i < labels.length; i++) {
+            JLabel label = createLabel(labels[i]);
+            JComponent component;
 
-                JLabel Nuc_lb_redirects = createLabel("是否跟随跳转：");
-                JComboBox<String> Nuc_Tab_redirects = createComboBox(GetRedirectsModes(), 1);
+            if (i == 3) {
+                component = createComboBox(GetSeverityModes(), 0);
+            } else if (i == 6) {
+                component = createComboBox(GetReqModes(), 0);
+            } else if (i == 8) {
+                component = createComboBox(GetHeadersModes(), 0);
+            } else if (i == 9) {
+                component = createComboBox(GetBodyModes(), 0);
+            } else if (i == 10) {
+                component = createComboBox(GetRedirectsModes(), 1);
+            } else {
+                component = createTextField(defaultValues[i]);
+            }
 
-                JLabel Nuc_lb_redirects_num = createLabel("跳转次数：");
-                JTextField Nuc_tf_redirects_num = createTextField("0");
+            panel.add(label);
+            panel.add(component);
+            components.put(labels[i], component);
+        }
 
-                JLabel Nuc_lb_Match_word = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_word = new JCheckBox(" (word)");
-                Nuc_CB_Match_word.addActionListener(e -> {
-                    if (Nuc_CB_Match_word.isSelected()) {
-                        match_word = true;
-                        match_true = true;
-                    } else {
-                        match_word = false;
-                    }
-                });
+        panel.add(generateButton);
+        panel.add(clearButton);
 
-                JLabel Nuc_lb_Match_header = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_header = new JCheckBox(" (header)");
-                Nuc_CB_Match_header.addActionListener(e -> {
-                    if (Nuc_CB_Match_header.isSelected()) {
-                        match_header = true;
-                        match_true = true;
-                    } else {
-                        match_header = false;
-                    }
-                });
+        generateButton.addActionListener(e -> generateTemplate());
+        clearButton.addActionListener(e -> clearOutput());
 
-                JLabel Nuc_lb_Match_status = new JLabel("matchers模版", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_status = new JCheckBox(" (status)");
-                Nuc_CB_Match_status.addActionListener(e -> {
-                    if (Nuc_CB_Match_status.isSelected()) {
-                        match_status = true;
-                        match_true = true;
-                    } else {
-                        match_status = false;
-                    }
-                });
+        return panel;
+    }
 
-                JLabel Nuc_lb_Match_extractors = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_extractors = new JCheckBox(" (extractors)");
-                Nuc_CB_Match_extractors.addActionListener(e -> extractors = Nuc_CB_Match_extractors.isSelected());
+    private void generateTemplate() {
+        String id = getComponentValue("模版id：");
+        String name = getComponentValue("模版名称：");
+        String author = getComponentValue("作者名称：");
+        String severity = getComponentValue("严重程度：");
+        String description = getComponentValue("描述：");
+        String tags = getComponentValue("Tags：");
+        String req = getComponentValue("请求方式：");
+        String path = getComponentValue("请求路径：");
+        String header = getComponentValue("Content-Type：");
+        String body = getComponentValue("body：");
+        String isRedirect = getComponentValue("是否跟随跳转：");
+        String redirectNum = getComponentValue("跳转次数：");
 
-                JLabel Nuc_lb_Match_negative = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_negative = new JCheckBox(" (negative)");
-                Nuc_CB_Match_negative.addActionListener(e -> {
-                    if (Nuc_CB_Match_negative.isSelected()) {
-                        match_negative = true;
-                        match_true = true;
-                    } else {
-                        match_negative = false;
-                    }
-                });
+        String yaml = generateYaml(id, name, author, description, tags, isRedirect, redirectNum, req, path, header, body, severity);
+        setOutputText(yaml);
+    }
 
-                JLabel Nuc_lb_Match_time = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_time = new JCheckBox(" (time)");
-                Nuc_CB_Match_time.addActionListener(e -> {
-                    if (Nuc_CB_Match_time.isSelected()) {
-                        match_time = true;
-                        match_true = true;
-                    } else {
-                        match_time = false;
-                    }
-                });
+    private String getComponentValue(String key) {
+        JComponent component = components.get(key);
+        if (component instanceof JTextField) {
+            return ((JTextField) component).getText();
+        } else if (component instanceof JComboBox) {
+            return (String) ((JComboBox<?>) component).getSelectedItem();
+        }
+        return "";
+    }
 
-                JLabel Nuc_lb_Match_size = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_size = new JCheckBox(" (size)");
-                Nuc_CB_Match_size.addActionListener(e -> {
-                    if (Nuc_CB_Match_size.isSelected()) {
-                        match_size = true;
-                        match_true = true;
-                    } else {
-                        match_size = false;
-                    }
-                });
+    private void clearOutput() {
+        setOutputText("");
+    }
 
-                JLabel Nuc_lb_Match_interactsh_protocol = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_interactsh_protocol = new JCheckBox(" (interactsh_protocol)");
-                Nuc_CB_Match_interactsh_protocol.addActionListener(e -> {
-                    if (Nuc_CB_Match_interactsh_protocol.isSelected()) {
-                        match_interactsh_protocol = true;
-                        match_true = true;
-                    } else {
-                        match_interactsh_protocol = false;
-                    }
-                });
+    private void setOutputText(String text) {
+        JTextArea outputArea = (JTextArea) ((JScrollPane) components.get("outputArea")).getViewport().getView();
+        outputArea.setText(text);
+    }
 
-                JLabel Nuc_lb_Match_interactsh_request = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_interactsh_request = new JCheckBox(" (interactsh_request)");
-                Nuc_CB_Match_interactsh_request.addActionListener(e -> {
-                    if (Nuc_CB_Match_interactsh_request.isSelected()) {
-                        match_interactsh_request = true;
-                        match_true = true;
-                    } else {
-                        match_interactsh_request = false;
-                    }
-                });
+    private JPanel createMatchersPanel() {
+        JPanel panel = new JPanel(new GridLayout(14, 2));
 
-                JLabel Nuc_lb_Match_regex = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_regex = new JCheckBox(" (regex)");
-                Nuc_CB_Match_regex.addActionListener(e -> {
-                    if (Nuc_CB_Match_regex.isSelected()) {
-                        match_regex = true;
-                        match_true = true;
-                    } else {
-                        match_regex = false;
-                    }
-                });
+        String[] matcherLabels = {"word", "header", "status", "extractors", "negative", "time", "size",
+                "interactsh_protocol", "interactsh_request", "regex", "binary"};
 
-                JLabel Nuc_lb_Match_binary = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-                JCheckBox Nuc_CB_Match_binary = new JCheckBox(" (binary)");
-                Nuc_CB_Match_binary.addActionListener(e -> {
-                    if (Nuc_CB_Match_binary.isSelected()) {
-                        match_binary = true;
-                        match_true = true;
-                    } else {
-                        match_binary = false;
-                    }
-                });
+        for (String label : matcherLabels) {
+            JLabel matchLabel = new JLabel("matchers模版 ", SwingConstants.RIGHT);
+            JCheckBox checkBox = new JCheckBox(" (" + label + ")");
 
-                Component[] components = {
-                        Nuc_bt_1, Nuc_bt_2,
-                        Nuc_lb_id, Nuc_tf_id,
-                        Nuc_lb_name, Nuc_tf_name,
-                        Nuc_lb_author, Nuc_tf_author,
-                        Nuc_lb_severity, Nuc_Tab_severity,
-                        Nuc_lb_description, Nuc_tf_description,
-                        Nuc_lb_tags, Nuc_tf_tags,
-                        Nuc_lb_req, Nuc_Tab_req,
-                        Nuc_lb_path, Nuc_tf_path,
-                        Nuc_lb_headers, Nuc_Tab_headers,
-                        Nuc_lb_body, Nuc_Tab_body,
-                        Nuc_lb_redirects, Nuc_Tab_redirects,
-                        Nuc_lb_redirects_num, Nuc_tf_redirects_num
-                };
-
-                for (Component component : components) {
-                    Nuc_jp1.add(component);
+            checkBox.addActionListener(e -> {
+                if ("extractors".equals(label)) {
+                    extractors = checkBox.isSelected();
+                } else {
+                    matchFlags.put(label, checkBox.isSelected());
                 }
+            });
 
-                JPanel Nuc_jp4 = new JPanel();
-                Nuc_jp4.setLayout(new GridLayout(14, 2));
+            panel.add(matchLabel);
+            panel.add(checkBox);
+        }
 
-                Component[] matchComponents = {
-                        Nuc_lb_Match_word, Nuc_CB_Match_word,
-                        Nuc_lb_Match_header, Nuc_CB_Match_header,
-                        Nuc_lb_Match_status, Nuc_CB_Match_status,
-                        Nuc_lb_Match_extractors, Nuc_CB_Match_extractors,
-                        Nuc_lb_Match_negative, Nuc_CB_Match_negative,
-                        Nuc_lb_Match_time, Nuc_CB_Match_time,
-                        Nuc_lb_Match_size, Nuc_CB_Match_size,
-                        Nuc_lb_Match_interactsh_protocol, Nuc_CB_Match_interactsh_protocol,
-                        Nuc_lb_Match_interactsh_request, Nuc_CB_Match_interactsh_request,
-                        Nuc_lb_Match_regex, Nuc_CB_Match_regex, Nuc_lb_Match_binary, Nuc_CB_Match_binary
-                };
+        return panel;
+    }
 
-                for (Component component : matchComponents) {
-                    Nuc_jp4.add(component);
-                }
+    private JPanel createOutputPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+        JTextArea outputArea = new JTextArea();
+        outputArea.setRows(30);
+        outputArea.setColumns(30);
+        outputArea.setLineWrap(true);
+        outputArea.setEditable(true);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        panel.add(scrollPane);
+        components.put("outputArea", scrollPane);
+        return panel;
+    }
 
-                JPanel Nuc_jp2 = new JPanel();
-                Nuc_jp2.setLayout(new GridLayout(1, 1));
+    private JPanel createHelpPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 2));
+        panel.add(createHelpScrollPane("/help1.txt"));
+        panel.add(createHelpScrollPane("/help2.txt"));
+        return panel;
+    }
 
-                JTextArea Nuc_ta_2 = new JTextArea();
-                Nuc_ta_2.setText("");
-                Nuc_ta_2.setRows(30);
-                Nuc_ta_2.setColumns(30);
-                Nuc_ta_2.setLineWrap(true);
-                Nuc_ta_2.setEditable(true);
-                JScrollPane Nuc_sp_2 = new JScrollPane(Nuc_ta_2);
+    private JScrollPane createHelpScrollPane(String filePath) {
+        String helpData = HelpDataLoader.loadHelpData(filePath);
+        JTextArea textArea = new JTextArea(helpData);
+        textArea.setRows(30);
+        textArea.setColumns(30);
+        textArea.setLineWrap(true);
+        textArea.setEditable(true);
+        return new JScrollPane(textArea);
+    }
 
-                Nuc_jp2.add(Nuc_sp_2);
+    private JLabel createLabel(String text) {
+        return new JLabel(text, SwingConstants.RIGHT);
+    }
 
-                // 使用方法加载两个帮助数据并创建对应的面板
-                JPanel Nuc_jp3 = new JPanel();
-                Nuc_jp3.setLayout(new GridLayout(1, 2));
+    private JTextField createTextField(String defaultValue) {
+        JTextField textField = new JTextField();
+        textField.setText(defaultValue);
+        return textField;
+    }
 
-                JScrollPane Nuc_sp_3 = createHelpPanel("/help1.txt");
-                JScrollPane Nuc_sp_4 = createHelpPanel("/help2.txt");
+    private JComboBox<String> createComboBox(String[] items, int selectedIndex) {
+        JComboBox<String> comboBox = new JComboBox<>(items);
+        comboBox.setSelectedIndex(selectedIndex);
+        return comboBox;
+    }
 
-                Nuc_jp3.add(Nuc_sp_3);
-                Nuc_jp3.add(Nuc_sp_4);
+    private String[] enumToStringArray(Enum<?>[] enumValues) {
+        return Arrays.stream(enumValues)
+                .map(e -> e.name().replace('_', '/'))
+                .toArray(String[]::new);
+    }
 
-                Nuc_bt_1.addActionListener(e -> {
-                    Object redirects = Nuc_Tab_redirects.getSelectedItem();
-                    Object req = Nuc_Tab_req.getSelectedItem();
-                    Object headers = Nuc_Tab_headers.getSelectedItem();
-                    Object body = Nuc_Tab_body.getSelectedItem();
-                    Object severity = Nuc_Tab_severity.getSelectedItem();
+    private String[] GetReqModes() {
+        return enumToStringArray(Config.reqMode.values());
+    }
 
-                    String redirectsString = redirects != null ? redirects.toString() : "";
-                    String reqString = req != null ? req.toString() : "";
-                    String headersString = headers != null ? headers.toString() : "";
-                    String bodyString = body != null ? body.toString() : "";
-                    String severityString = severity != null ? severity.toString() : "";
+    private String[] GetSeverityModes() {
+        return enumToStringArray(Config.severityMode.values());
+    }
 
-                    Nuc_ta_2.setText(Yaml_Gen(Nuc_tf_id.getText(), Nuc_tf_name.getText(), Nuc_tf_author.getText(),
-                            Nuc_tf_description.getText(), Nuc_tf_tags.getText(), redirectsString,
-                            Nuc_tf_redirects_num.getText(), reqString, Nuc_tf_path.getText(),
-                            headersString, bodyString, severityString));
-                });
+    private String[] GetBodyModes() {
+        return enumToStringArray(Config.ContentBodyMode.values());
+    }
 
-                Nuc_bt_2.addActionListener(e -> Nuc_ta_2.setText(""));
+    private String[] GetHeadersModes() {
+        return enumToStringArray(Config.ContentTypeMode.values());
+    }
 
-                tabs = new JTabbedPane();
-
-                JSplitPane Nu_Te_Pane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-                tabs.addTab("Template生成", Nu_Te_Pane2);
-
-                JSplitPane splitPanes = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-                splitPanes.setTopComponent(Nuc_jp1);
-                splitPanes.setBottomComponent(Nuc_jp4);
-                splitPanes.setDividerLocation(450);
-
-                JSplitPane splitPanes_2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-                splitPanes_2.setLeftComponent(Nuc_jp2);
-                splitPanes_2.setRightComponent(Nuc_jp3);
-                splitPanes_2.setDividerLocation(430);
-
-                Nu_Te_Pane2.setLeftComponent(splitPanes);
-                Nu_Te_Pane2.setRightComponent(splitPanes_2);
-                Nu_Te_Pane2.setDividerLocation(380);
-
-                callbacks.customizeUiComponent(tabs);
-
-                callbacks.addSuiteTab(BurpExtender.this);
-
-                callbacks.registerHttpListener(BurpExtender.this);
-
-            }
-
-            private JLabel createLabel(String text) {
-                return new JLabel(text, SwingConstants.RIGHT);
-            }
-
-            private JTextField createTextField(String defaultValue) {
-                JTextField textField = new JTextField();
-                textField.setText(defaultValue);
-                return textField;
-            }
-
-            private JComboBox<String> createComboBox(String[] items, int selectedIndex) {
-                JComboBox<String> comboBox = new JComboBox<>(items);
-                comboBox.setSelectedIndex(selectedIndex);
-                return comboBox;
-            }
-
-            // 方法提取加载帮助数据
-            private JScrollPane createHelpPanel(String filePath) {
-                JPanel panel = new JPanel();
-                panel.setLayout(new GridLayout(1, 1));
-
-                String helpData = HelpDataLoader.loadHelpData(filePath);
-
-                JTextArea textArea = new JTextArea();
-                textArea.setText(helpData);
-                textArea.setRows(30);
-                textArea.setColumns(30);
-                textArea.setLineWrap(true); // 自动换行
-                textArea.setEditable(true); // 可编辑
-                JScrollPane scrollPane = new JScrollPane(textArea);
-
-                panel.add(scrollPane);
-                return scrollPane;
-            }
-
-            private String[] enumToStringArray(Enum<?>[] enumValues) {
-                ArrayList<String> stringList = new ArrayList<>();
-                for (Enum<?> enumValue : enumValues) {
-                    stringList.add(enumValue.name().replace('_', '/'));
-                }
-                return stringList.toArray(new String[0]);
-            }
-
-            private String[] GetReqModes() {
-                return enumToStringArray(Config.reqMode.values());
-            }
-
-            private String[] GetSeverityModes() {
-                return enumToStringArray(Config.severityMode.values());
-            }
-
-            private String[] GetBodyModes() {
-                return enumToStringArray(Config.ContentBodyMode.values());
-            }
-
-            private String[] GetHeadersModes() {
-                return enumToStringArray(Config.ContentTypeMode.values());
-            }
-
-            private String[] GetRedirectsModes() {
-                return enumToStringArray(Config.RedirectsMode.values());
-            }
-        });
+    private String[] GetRedirectsModes() {
+        return enumToStringArray(Config.RedirectsMode.values());
     }
 
     @Override
     public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+        // Implementation not provided in the original code
     }
 
     @Override
@@ -385,228 +259,180 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener {
         return tabs;
     }
 
-    private String Yaml_Gen(String TP_Id, String TP_Name, String TP_Author, String TP_Description, String TP_Tags,
-                            String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header,
-                            String TP_Body, String Tp_Severity) {
-        String data = "";
+    private String generateYaml(String TP_Id, String TP_Name, String TP_Author, String TP_Description, String TP_Tags,
+                                String TP_IsRedirect, String TP_Redirect_Num, String TP_Req, String TP_Path, String TP_Header,
+                                String TP_Body, String Tp_Severity) {
+        StringBuilder data = new StringBuilder();
 
-        // 图省事，直接修改此处，硬编码metadata字段
-        String id_info = """
-                id: %s
+        // Metadata section
+        data.append(String.format("""
+            id: %s
+            
+            info:
+              name: %s
+              author: %s
+              severity: %s
+              description: |
+                %s
+              metadata:
+                fofa-query:
+                shodan-query:
+                hunter-query:
+              reference:
+                - https://
+              tags: %s
+            """, TP_Id, TP_Name, TP_Author, Tp_Severity, TP_Description, TP_Tags));
 
-                info:
-                  name: %s
-                  author: %s
-                  severity: %s
-                  description: |
-                    %s
-                  metadata:
-                    fofa-query:\s
-                    shodan-query:\s
-                    hunter-query:\s
-                  reference:
-                    - https://
-                  tags: %s
+        // HTTP request section
+        appendHttpSection(data, TP_Req, TP_Path, TP_Header, TP_Body);
 
-                """;
-        data += String.format(id_info, TP_Id, TP_Name, TP_Author, Tp_Severity, TP_Description, TP_Tags);
+        // Redirects section
+        if ("istrue".equals(TP_IsRedirect)) {
+            data.append(String.format("""
+                host-redirects: true
+                max-redirects: %s
+            """, TP_Redirect_Num));
+        }
 
-        String raw_requests = """
+        // Matchers section
+        appendMatchersSection(data);
+
+        return data.toString();
+    }
+
+    private void appendHttpSection(StringBuilder data, String TP_Req, String TP_Path, String TP_Header, String TP_Body) {
+        if ("RAW".equals(TP_Req)) {
+            data.append(String.format("""
                 http:
                   - raw:
                       - |
                         POST %s HTTP/1.1
                         Host: {{Hostname}}
                         Content-Type: %s
-
+                        
                         %s
-
-                """;
-
-        String requests = """
+            """, TP_Path, TP_Header, "带".equals(TP_Body) ? "Body" : ""));
+        } else {
+            data.append(String.format("""
                 http:
                   - method: %s
                     path:
                       - "{{BaseURL}}%s"
+            """, TP_Req, TP_Path));
 
-                """;
+            data.append(String.format("""
+                headers:
+                  Content-Type: %s
+            """, TP_Header));
 
-        String Header = """
-                    headers:
-                      Content-Type: %s
-
-                """;
-
-        String Body = """
+            if (!"不带".equals(TP_Body)) {
+                data.append("""
                     body: |
                       替换此处注意每行缩进
-
-                """;
-
-        String redirects = """
-                    host-redirects: true
-                    max-redirects: %s
-
-                """;
-
-        String Matchers = """
-                    matchers-condition: and
-                    matchers:
-                """;
-
-        String MatchersWord = """
-                      - type: word
-                        part: body
-                        words:
-                          - 'test1'
-                          - 'test2'
-                        condition: or
-
-                """;
-
-        String MatchersHeader = """
-                      - type: word
-                        part: header
-                        words:
-                          - 'tomcat'
-
-                """;
-
-        String MatchersStatus = """
-                      - type: status
-                        status:
-                          - 200
-
-                """;
-
-        String MatchersNegative = """
-                      - type: word
-                        words:
-                          - "荣耀立方"
-                          - 'var model = "LW-N605R"'
-                        part: body
-                        negative: true
-                        condition: or
-
-                """;
-
-        String MatchersTime = """
-                      - type: dsl
-                        dsl:
-                          - 'duration>=6'
-
-                """;
-
-        String MatchersSize = """
-                      - type: dsl
-                        dsl:
-                          - 'len(body)<130'
-
-                """;
-
-        String MatchersInteractsh_Protocol = """
-                      - type: word
-                        part: interactsh_protocol  # 配合 {{interactsh-url}} 关键词使用
-                        words:
-                          - "http"
-
-                """;
-
-        String MatchersInteractsh_Request = """
-                      - type: regex
-                        part: interactsh_request   # 配合 {{interactsh-url}} 关键词使用
-                        regex:
-                          - "root:.*:0:0:"
-
-                """;
-
-        String MatchersInteractsh_Regex = """
-                      - type: regex
-                        regex:
-                          - "root:.*:0:0:"
-                        part: body
-
-                """;
-
-        String MatchersInteractsh_Binary = """
-                      - type: binary
-                        binary:
-                          - "D0CF11E0"  # db
-                          - "53514C69746520"  # SQLite
-                        part: body
-                        condition: or
-
-                """;
-
-        String Extractors = """
-                    extractors:
-                      - part: header
-                        internal: true
-                        group: 1
-                        type: regex
-                        regex:
-                          - 'Set-Cookie: PHPSESSID=(.*); path=/'
-
-                """;
-
-        // 将TP_Header转换为适当的Content-Type
-        if ("urlencoded".equals(TP_Header)) {
-            TP_Header = "application/x-www-form-urlencoded";
-        } else if ("json".equals(TP_Header)) {
-            TP_Header = "application/json";
-        } else if ("xml".equals(TP_Header) && !"RAW".equals(TP_Req)) {
-            TP_Header = "text/xml";
-        }
-
-        // 处理TP_Body的条件
-        if ("RAW".equals(TP_Req)) {
-            TP_Body = "带".equals(TP_Body) ? "Body" : "";
-            data += String.format(raw_requests, TP_Path, TP_Header, TP_Body);
-        } else {
-            if (!"不带".equals(TP_Body)) {
-                data += String.format(Body, TP_Body);
+            """);
             }
-            data += String.format(requests, TP_Req, TP_Path);
-            data += String.format(Header, TP_Header);
         }
-
-        // 处理重定向
-        if ("istrue".equals(TP_IsRedirect)) {
-            data += String.format(redirects, TP_Redirect_Num);
-        }
-
-        // 添加匹配器和提取器
-        data = getString(data, Matchers, MatchersWord, MatchersHeader, MatchersStatus, MatchersNegative, MatchersTime,
-                match_true, match_word, match_header, match_status, match_negative, match_time);
-        data = getString(data, MatchersSize, MatchersInteractsh_Protocol, MatchersInteractsh_Request,
-                MatchersInteractsh_Regex, MatchersInteractsh_Binary, Extractors, match_size, match_interactsh_protocol,
-                match_interactsh_request, match_regex, match_binary, extractors);
-
-        return data;
-
     }
 
-    private String getString(String data, String matchers, String matchersWord, String matchersHeader,
-                             String matchersStatus, String matchersNegative, String matchersTime, boolean matchTrue, boolean matchWord,
-                             boolean matchHeader, boolean matchStatus, boolean matchNegative, boolean matchTime) {
-        if (matchTrue) {
-            data += matchers;
+    private void appendMatchersSection(StringBuilder data) {
+        boolean hasMatchers = matchFlags.values().stream().anyMatch(Boolean::booleanValue);
+        if (hasMatchers) {
+            data.append("""
+                matchers-condition: and
+                matchers:
+            """);
+
+            appendMatcherIfEnabled(data, "word", """
+                  - type: word
+                    part: body
+                    words:
+                      - 'test1'
+                      - 'test2'
+                    condition: or
+            """);
+
+            appendMatcherIfEnabled(data, "header", """
+                  - type: word
+                    part: header
+                    words:
+                      - 'tomcat'
+            """);
+
+            appendMatcherIfEnabled(data, "status", """
+                  - type: status
+                    status:
+                      - 200
+            """);
+
+            appendMatcherIfEnabled(data, "negative", """
+                  - type: word
+                    words:
+                      - "荣耀立方"
+                      - 'var model = "LW-N605R"'
+                    part: body
+                    negative: true
+                    condition: or
+            """);
+
+            appendMatcherIfEnabled(data, "time", """
+                  - type: dsl
+                    dsl:
+                      - 'duration>=6'
+            """);
+
+            appendMatcherIfEnabled(data, "size", """
+                  - type: dsl
+                    dsl:
+                      - 'len(body)<130'
+            """);
+
+            appendMatcherIfEnabled(data, "interactsh_protocol", """
+                  - type: word
+                    part: interactsh_protocol  # 配合 {{interactsh-url}} 关键词使用
+                    words:
+                      - "http"
+            """);
+
+            appendMatcherIfEnabled(data, "interactsh_request", """
+                  - type: regex
+                    part: interactsh_request   # 配合 {{interactsh-url}} 关键词使用
+                    regex:
+                      - "root:.*:0:0:"
+            """);
+
+            appendMatcherIfEnabled(data, "regex", """
+                  - type: regex
+                    regex:
+                      - "root:.*:0:0:"
+                    part: body
+            """);
+
+            appendMatcherIfEnabled(data, "binary", """
+                  - type: binary
+                    binary:
+                      - "D0CF11E0"  # db
+                      - "53514C69746520"  # SQLite
+                    part: body
+                    condition: or
+            """);
         }
-        if (matchWord) {
-            data += matchersWord;
+
+        if (extractors) {
+            data.append("""
+                extractors:
+                  - part: header
+                    internal: true
+                    group: 1
+                    type: regex
+                    regex:
+                      - 'Set-Cookie: PHPSESSID=(.*); path=/'
+            """);
         }
-        if (matchHeader) {
-            data += matchersHeader;
+    }
+
+    private void appendMatcherIfEnabled(StringBuilder data, String matcherType, String matcherContent) {
+        if (Boolean.TRUE.equals(matchFlags.get(matcherType))) {
+            data.append(matcherContent);
         }
-        if (matchStatus) {
-            data += matchersStatus;
-        }
-        if (matchNegative) {
-            data += matchersNegative;
-        }
-        if (matchTime) {
-            data += matchersTime;
-        }
-        return data;
     }
 }
