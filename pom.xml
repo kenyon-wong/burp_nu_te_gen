@@ -41,7 +41,7 @@
                     <!-- MainClass in manifest make a executable jar -->
                     <archive>
                         <manifest>
-                            <mainClass>burp.BurpExtender</mainClass>
+                            <mainClass>burp.NuTeGenExtension</mainClass>
                         </manifest>
                     </archive>
 
@@ -62,10 +62,12 @@
     </build>
 
     <dependencies>
+        <!-- Montoya API - 官方新版 Burp API -->
         <dependency>
-            <groupId>net.portswigger.burp.extender</groupId>
-            <artifactId>burp-extender-api</artifactId>
-            <version>2.3</version>
+            <groupId>net.portswigger.burp.extensions</groupId>
+            <artifactId>montoya-api</artifactId>
+            <version>2023.12.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
