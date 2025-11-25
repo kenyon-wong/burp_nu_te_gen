@@ -8,6 +8,7 @@ import burp.model.TemplateConfig;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -43,21 +44,21 @@ public class TemplateGeneratorUI {
         JPanel outputPanel = createOutputPanel();
         JPanel helpPanel = createHelpPanel();
 
-        // 使用分割面板布局
+        // 使用分割面板布局 - 自适应比例
         JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         leftSplit.setTopComponent(inputPanel);
         leftSplit.setBottomComponent(matcherPanel);
-        leftSplit.setDividerLocation(450);
+        leftSplit.setResizeWeight(0.6);
 
         JSplitPane rightSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         rightSplit.setLeftComponent(outputPanel);
         rightSplit.setRightComponent(helpPanel);
-        rightSplit.setDividerLocation(430);
+        rightSplit.setResizeWeight(0.5);
 
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         mainSplit.setLeftComponent(leftSplit);
         mainSplit.setRightComponent(rightSplit);
-        mainSplit.setDividerLocation(380);
+        mainSplit.setResizeWeight(0.35);
 
         mMainPanel.add(mainSplit, BorderLayout.CENTER);
     }
@@ -170,7 +171,7 @@ public class TemplateGeneratorUI {
             if (is == null) {
                 return "帮助文件未找到: " + path;
             }
-            return new String(is.readAllBytes());
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             return "加载失败: " + e.getMessage();
         }
