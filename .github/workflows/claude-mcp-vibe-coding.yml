@@ -1,0 +1,101 @@
+name: Claude Code Processing
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'prompt.md'
+
+jobs:
+  process-with-claude:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # 步骤1: 检出仓库代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 获取完整历史，确保可以正确提交
+
+      # 步骤2: 配置Git用户信息
+      - name: Configure Git user
+        run: |
+          git config --global user.name "kenyon"
+          git config --global user.email "kenyon@noreply.localhost"
+          git config --global commit.gpgsign false
+
+      # 步骤3: 设置JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'liberica'
+
+      # 步骤4: 设置Node.js环境 (Claude Code依赖)
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      # 步骤5: 全局安装Claude Code
+      - name: Install Claude Code globally
+        run: |
+          npm install -g @anthropic-ai/claude-code
+
+      # 步骤6: 配置Claude Code环境
+      - name: Configure Claude Code environment
+        run: |
+          cd ~ && rm -rf .claude && git clone --depth 1 https://github.com/kenyon-wong/.claude.git .claude
+
+      # 在 "Configure Claude Code environment" 步骤之后添加
+      - name: Install git commit hook
+        run: |
+          mkdir -p .git/hooks
+          cp ~/.claude/hooks/prepare-commit-msg.sh .git/hooks/prepare-commit-msg
+          chmod +x .git/hooks/prepare-commit-msg
+
+      # 步骤7: 安装Sequential Thinking MCP服务器
+      - name: Install Sequential Thinking MCP Server
+        run: |
+          claude mcp add -s user -t http context7 https://mcp.context7.com/mcp
+          claude mcp add -s user -t http grep https://mcp.grep.app
+          claude mcp add -s user -t http deepwiki https://mcp.deepwiki.com/mcp
+          claude mcp add-json "sequential-thinking" '{"command":"npx","args":["-y","@modelcontextprotocol/server-sequential-thinking"]}'
+
+      # 步骤7.5: 清理完成标记文件（允许重新执行）
+      - name: Clean completion marker
+        run: |
+          if [ -f .agent/completed ]; then
+            rm .agent/completed
+            echo "已删除 .agent/completed 文件，允许重新执行任务"
+          else
+            echo "未发现 .agent/completed 文件，继续执行"
+          fi
+
+      # 步骤8: 读取处理指令并执行Claude Code
+      - name: Process project with Claude Code
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_API }}
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_API_KEY }}
+          GIT_AUTHOR_NAME: kenyon
+          GIT_AUTHOR_EMAIL: kenyon@noreply.localhost
+          GIT_COMMITTER_NAME: kenyon
+          GIT_COMMITTER_EMAIL: kenyon@noreply.localhost
+          CLAUDE_CODE_DISABLE_COMMIT_SIGNATURES: 1  # 尝试性添加（可能无效）
+        run: |
+          while :; do
+            cat prompt.md | claude -p --dangerously-skip-permissions
+            # 检查完成标记文件，存在则退出循环
+            if [ -f .agent/completed ]; then
+              echo "检测到 .agent/completed 文件，任务已完成，退出循环"
+              break
+            fi
+            # 短暂延迟，避免过快重试
+            sleep 2 && git push origin
+          done
+          # 循环结束后，推送所有变更到远程仓库（Gitea）
+          git push origin
