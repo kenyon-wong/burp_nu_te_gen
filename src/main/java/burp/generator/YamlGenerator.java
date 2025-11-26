@@ -29,7 +29,7 @@ public final class YamlGenerator {
             yaml.append(generateMatchers(config.matchers()));
         }
 
-        if (config.matchers().useExtractors()) {
+        if (config.matchers().hasExtractors()) {
             yaml.append(generateExtractors());
         }
 
@@ -150,7 +150,7 @@ public final class YamlGenerator {
     }
 
     /**
-     * 生成匹配器部分
+     * 生成匹配器部分 - 使用数据驱动方式消除重复代码
      */
     private static String generateMatchers(MatcherConfig matchers) {
         StringBuilder m = new StringBuilder();
@@ -159,8 +159,23 @@ public final class YamlGenerator {
                 matchers:
         """);
 
-        if (matchers.useWord()) {
-            m.append("""
+        // 数据驱动:每个匹配器类型对应一个生成函数
+        for (MatcherConfig.MatcherType type : MatcherConfig.MatcherType.values()) {
+            if (type == MatcherConfig.MatcherType.EXTRACTORS) continue;
+            if (matchers.isEnabled(type)) {
+                m.append(generateMatcherBlock(type));
+            }
+        }
+
+        return m.toString();
+    }
+
+    /**
+     * 根据匹配器类型生成对应的 YAML 块
+     */
+    private static String generateMatcherBlock(MatcherConfig.MatcherType type) {
+        return switch (type) {
+            case WORD -> """
                   - type: word
                     part: body
                     words:
@@ -168,30 +183,21 @@ public final class YamlGenerator {
                       - 'test2'
                     condition: or
 
-        """);
-        }
-
-        if (matchers.useHeader()) {
-            m.append("""
+        """;
+            case HEADER -> """
                   - type: word
                     part: header
                     words:
                       - 'tomcat'
 
-        """);
-        }
-
-        if (matchers.useStatus()) {
-            m.append("""
+        """;
+            case STATUS -> """
                   - type: status
                     status:
                       - 200
 
-        """);
-        }
-
-        if (matchers.useNegative()) {
-            m.append("""
+        """;
+            case NEGATIVE -> """
                   - type: word
                     words:
                       - "荣耀立方"
@@ -200,59 +206,41 @@ public final class YamlGenerator {
                     negative: true
                     condition: or
 
-        """);
-        }
-
-        if (matchers.useTime()) {
-            m.append("""
+        """;
+            case TIME -> """
                   - type: dsl
                     dsl:
                       - 'duration>=6'
 
-        """);
-        }
-
-        if (matchers.useSize()) {
-            m.append("""
+        """;
+            case SIZE -> """
                   - type: dsl
                     dsl:
                       - 'len(body)<130'
 
-        """);
-        }
-
-        if (matchers.useInteractshProtocol()) {
-            m.append("""
+        """;
+            case INTERACTSH_PROTOCOL -> """
                   - type: word
                     part: interactsh_protocol
                     words:
                       - "http"
 
-        """);
-        }
-
-        if (matchers.useInteractshRequest()) {
-            m.append("""
+        """;
+            case INTERACTSH_REQUEST -> """
                   - type: regex
                     part: interactsh_request
                     regex:
                       - "root:.*:0:0:"
 
-        """);
-        }
-
-        if (matchers.useRegex()) {
-            m.append("""
+        """;
+            case REGEX -> """
                   - type: regex
                     regex:
                       - "root:.*:0:0:"
                     part: body
 
-        """);
-        }
-
-        if (matchers.useBinary()) {
-            m.append("""
+        """;
+            case BINARY -> """
                   - type: binary
                     binary:
                       - "D0CF11E0"
@@ -260,10 +248,9 @@ public final class YamlGenerator {
                     part: body
                     condition: or
 
-        """);
-        }
-
-        return m.toString();
+        """;
+            case EXTRACTORS -> ""; // 不应该到这里
+        };
     }
 
     /**

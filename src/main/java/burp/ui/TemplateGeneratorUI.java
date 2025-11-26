@@ -4,12 +4,14 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.ui.UserInterface;
 import burp.generator.YamlGenerator;
 import burp.model.MatcherConfig;
+import burp.model.MatcherConfig.MatcherType;
 import burp.model.TemplateConfig;
 
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 
 /**
@@ -111,7 +113,7 @@ public class TemplateGeneratorUI {
 
         for (MatcherType type : MatcherType.values()) {
             JLabel label = new JLabel("matchers模版 ", SwingConstants.RIGHT);
-            JCheckBox checkBox = new JCheckBox(" (" + type.getDisplayName() + ")");
+            JCheckBox checkBox = new JCheckBox(" (" + type.name().toLowerCase() + ")");
             mMatcherCheckBoxes.put(type, checkBox);
 
             panel.add(label);
@@ -256,19 +258,15 @@ public class TemplateGeneratorUI {
         boolean followRedirects = "true".equals(mComboBoxes.get(FormField.REDIRECTS).getSelectedItem());
         int maxRedirects = Integer.parseInt(mTextFields.get(FormField.MAX_REDIRECTS).getText());
 
-        MatcherConfig matchers = new MatcherConfig(
-            mMatcherCheckBoxes.get(MatcherType.WORD).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.HEADER).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.STATUS).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.NEGATIVE).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.TIME).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.SIZE).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.INTERACTSH_PROTOCOL).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.INTERACTSH_REQUEST).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.REGEX).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.BINARY).isSelected(),
-            mMatcherCheckBoxes.get(MatcherType.EXTRACTORS).isSelected()
-        );
+        // 使用 EnumSet 收集启用的匹配器
+        EnumSet<MatcherType> enabledMatchers = EnumSet.noneOf(MatcherType.class);
+        for (Map.Entry<MatcherType, JCheckBox> entry : mMatcherCheckBoxes.entrySet()) {
+            if (entry.getValue().isSelected()) {
+                enabledMatchers.add(entry.getKey());
+            }
+        }
+
+        MatcherConfig matchers = new MatcherConfig(enabledMatchers);
 
         return new TemplateConfig(
             id, name, author, severity, description, tags,
@@ -304,33 +302,6 @@ public class TemplateGeneratorUI {
 
         public String getLabel() {
             return mLabel;
-        }
-    }
-
-    /**
-     * 匹配器类型枚举
-     */
-    private enum MatcherType {
-        WORD("word"),
-        HEADER("header"),
-        STATUS("status"),
-        EXTRACTORS("extractors"),
-        NEGATIVE("negative"),
-        TIME("time"),
-        SIZE("size"),
-        INTERACTSH_PROTOCOL("interactsh_protocol"),
-        INTERACTSH_REQUEST("interactsh_request"),
-        REGEX("regex"),
-        BINARY("binary");
-
-        private final String mDisplayName;
-
-        MatcherType(String displayName) {
-            this.mDisplayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return mDisplayName;
         }
     }
 }
